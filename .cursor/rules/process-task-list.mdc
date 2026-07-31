@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+# Task Execution Rules
+
+## Context
+Ce fichier guide l'IA dans l'exécution rigoureuse de la liste des tâches.
+
+## Directives
+- **Exécution séquentielle :** Traite les tâches de la liste **une par une**, dans l'ordre, sans brûler les étapes.
+- **Mise à jour :** Une fois qu'une tâche est codée et testée, coche-la dans le fichier de suivi (remplace `- [ ]` par `- [x]`).
+- **Validation :** Fournis systématiquement le résumé des modifications et le statut de la tâche avant de passer à la suivante.

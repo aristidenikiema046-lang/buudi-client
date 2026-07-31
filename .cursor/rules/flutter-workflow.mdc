@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+
+## Context
+Ce fichier définit les règles pour le développement de l'interface utilisateur de Buudi Africa avec Flutter.
+
+## Directives
+- Utilise une gestion d'état propre et prévisible (ex: Provider, Riverpod ou Bloc selon l'architecture du projet).
+- Sépare proprement la logique métier des widgets UI (Widgets réutilisables, composants atomiques).
+- Respecte scrupuleusement les conventions de nommage Dart (lowerCamelCase pour les variables/méthodes, PascalCase pour les classes).
+- Gère systématiquement les états de chargement (Loading), d'erreur (Error) et de succès (Success) sur les vues connectées à une API.

@@ -1,0 +1,16 @@
+---
+alwaysApply: true
+---
+
+# PRD Generation Rules
+
+## Context
+Ce fichier guide l'IA dans la création d'un Cahier des Charges (PRD) professionnel pour les fonctionnalités de Buudi Africa.
+
+## Directives
+- Lorsque l'utilisateur demande de créer un PRD ou de formaliser une idée de fonctionnalité, structure la réponse avec les sections suivantes :
+  1. **Objectif de la fonctionnalité** (Pourquoi on le fait)
+  2. **User Stories** (En tant qu'utilisateur, je veux...)
+  3. **Spécifications Techniques** (Impacts Flutter UI et Laravel API)
+  4. **Critères d'acceptation** (Comment savoir si c'est réussi)
+- Reste concis, précis et aligné avec la stack technique du projet.

@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+# General AI Iteration & Quality Standards
+
+## Context
+Règles de comportement global pour l'agent Cursor sur Buudi Africa.
+
+## Directives
+- **Approche par étapes :** Ne génère jamais tout le code d'un coup pour les fonctionnalités complexes. Découpe la logique et valide chaque étape.
+- **Révision obligatoire :** Fournis toujours un résumé clair des modifications, des fichiers touchés et des risques potentiels à la fin de chaque tâche.
+- **Maintenance :** Écris du code propre, documenté et prêt pour la production, sans code mort ou de test temporaire non nettoyé.

@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+# Task Generation Rules
+
+## Context
+Ce fichier guide l'IA pour découper un PRD en un plan d'action étape par étape.
+
+## Directives
+- À partir d'un PRD validé, génère une liste de tâches ordonnées (sous forme de todo list avec des cases à cocher `- [ ]`).
+- Découpe les tâches de manière granulaire (ex: séparer la migration Laravel, le contrôleur API, et l'intégration du widget Flutter).
+- Chaque tâche doit être indépendante, testable et claire pour éviter de saturer le contexte de l'IA.
