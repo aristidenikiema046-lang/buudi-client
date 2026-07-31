@@ -62,13 +62,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -118,8 +119,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         decoration: InputDecoration(
                           counterText: "",
+                          filled: true,
+                          fillColor: const Color(0xFFF7F7F9),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFFF5722), width: 1.5),
                           ),
                         ),
                         onChanged: (value) {
@@ -145,7 +153,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 _start > 0
                     ? Text(
                         "Renvoyer le code dans 00:${_start.toString().padLeft(2, '0')}",
-                        style: const TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFFFF5722), fontWeight: FontWeight.bold),
                       )
                     : TextButton(
                         onPressed: () {
@@ -178,12 +186,20 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepOrange,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: const Color(0xFFFF5722),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: state is AuthLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Continuer", style: TextStyle(fontSize: 16, color: Colors.white)),
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : const Text(
+                            "Continuer",
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 40),

@@ -13,6 +13,8 @@ import '../common/coming_soon_screen.dart';
 import 'wallet_screen.dart';
 import 'transfer_screen.dart';
 import 'vtc/ride_request_screen.dart';
+import 'client_activity_screen.dart';
+import 'client_profile_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({Key? key}) : super(key: key);
@@ -118,6 +120,22 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final user = authState is Authenticated ? authState.user as UserModel? : null;
+
+    final tabs = [
+      _buildAccueilTab(context, user),
+      const ClientActivityScreen(),
+      const SizedBox.shrink(), // "Scanner" : action interceptée dans le onTap, jamais réellement affiché
+      const ComingSoonScreen(title: 'Messages'),
+      const ClientProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: tabs[_currentIndex],
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildAccueilTab(BuildContext context, UserModel? user) {
     final firstName = (user?.name ?? '').split(' ').first;
 
     return Scaffold(
@@ -212,7 +230,6 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -604,7 +621,15 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       ),
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          if (index == 2) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Scanner : bientôt disponible")),
+            );
+            return;
+          }
+          setState(() => _currentIndex = index);
+        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFFFF5722),
