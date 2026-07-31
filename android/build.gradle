@@ -1,14 +1,10 @@
 buildscript {
-    ext.kotlin_version = '2.2.20'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        // Le plugin Kotlin d'origine
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        
         // LE SEUL ET UNIQUE ENDROIT POUR LE PLUGIN FIREBASE :
         classpath 'com.google.gms:google-services:4.3.15'
     }
