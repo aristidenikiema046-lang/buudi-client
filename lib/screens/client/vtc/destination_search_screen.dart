@@ -24,6 +24,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
   static const _orange = Color(0xFFFF5722);
 
   final TextEditingController _controller = TextEditingController();
+  final Geocoding _geocoding = Geocoding();
   bool _searching = false;
   String? _error;
   List<DestinationResult> _results = [];
@@ -42,12 +43,12 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
       _results = [];
     });
     try {
-      final locations = await locationFromAddress(query);
+      final locations = await _geocoding.locationFromAddress(query);
       final results = <DestinationResult>[];
       for (final loc in locations.take(5)) {
         String address = query;
         try {
-          final placemarks = await placemarkFromCoordinates(loc.latitude, loc.longitude);
+          final placemarks = await _geocoding.placemarkFromCoordinates(loc.latitude, loc.longitude);
           if (placemarks.isNotEmpty) {
             final p = placemarks.first;
             address = [p.name, p.subLocality, p.locality, p.country]

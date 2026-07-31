@@ -34,6 +34,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
 
   DestinationResult? _destination;
   String _serviceType = 'ok_taxi';
+  final Geocoding _geocoding = Geocoding();
 
   final List<Map<String, String>> _quickPlaces = const [
     {'label': 'Maison', 'sub': 'Cocody Riviera', 'query': "Cocody Riviera, Abidjan, Côte d'Ivoire"},
@@ -74,7 +75,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
       final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       String address = "Position actuelle";
       try {
-        final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+        final placemarks = await _geocoding.placemarkFromCoordinates(position.latitude, position.longitude);
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;
           address = [p.name, p.subLocality, p.locality].where((e) => e != null && e.isNotEmpty).join(', ');
@@ -111,7 +112,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
 
   Future<void> _quickPickDestination(String query) async {
     try {
-      final locations = await locationFromAddress(query);
+      final locations = await _geocoding.locationFromAddress(query);
       if (locations.isEmpty) return;
       final loc = locations.first;
       setState(() => _destination = DestinationResult(lat: loc.latitude, lng: loc.longitude, address: query));
