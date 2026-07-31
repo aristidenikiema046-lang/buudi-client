@@ -18,7 +18,7 @@ import 'services/fcm_service.dart';
 
 // --- IMPORTS DES ÉCRANS & BLOCS ---
 
-import 'screens/auth/role_selection_screen.dart';
+import 'screens/auth/welcome_screen.dart';
 
 import 'screens/auth/login_screen.dart';
 
@@ -150,7 +150,7 @@ class BuudiApp extends StatelessWidget {
 
         // Écran initial
 
-        home: const RoleSelectionScreen(),
+        home: const WelcomeScreen(),
 
 
 
@@ -158,7 +158,7 @@ class BuudiApp extends StatelessWidget {
 
         routes: {
 
-          '/role_selection': (context) => const RoleSelectionScreen(),
+          '/welcome': (context) => const WelcomeScreen(),
 
           '/login': (context) => const LoginScreen(),
 

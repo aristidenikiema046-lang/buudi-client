@@ -17,7 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  String _selectedRole = "client";
   bool _showPasswordField = false;
   bool _obscurePassword = true;
 
@@ -147,8 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isClient = _selectedRole == "client";
-
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthError) {
@@ -244,20 +241,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     if (!_showPasswordField) ...[
                       const Text(
-                        "Je me connecte en tant que :",
+                        "Email ou téléphone",
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildRoleSelector(isLoading),
-                      const SizedBox(height: 25),
-
-                      Text(
-                        isClient ? "Email ou téléphone" : "Numéro de téléphone",
-                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
@@ -266,16 +251,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: _loginController,
-                        keyboardType: isClient ? TextInputType.text : TextInputType.phone,
+                        keyboardType: TextInputType.text,
                         enabled: !isLoading,
                         decoration: InputDecoration(
-                          hintText: isClient ? "Email ou numéro de téléphone" : "+225 07 12 34 56 78",
+                          hintText: "Email ou numéro de téléphone",
                           hintStyle: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 14,
                           ),
                           prefixIcon: Icon(
-                            isClient ? Icons.alternate_email_rounded : Icons.phone_android_rounded,
+                            Icons.alternate_email_rounded,
                             color: Colors.grey[400],
                             size: 18,
                           ),
@@ -367,12 +352,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() => _showPasswordField = true);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        isClient
-                                            ? "Veuillez entrer votre email ou numéro de téléphone"
-                                            : "Veuillez entrer votre numéro de téléphone",
-                                      ),
+                                    const SnackBar(
+                                      content: Text("Veuillez entrer votre email ou numéro de téléphone"),
                                     ),
                                   );
                                 }
@@ -385,7 +366,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         SignInRequested(
                                           phone: _loginController.text.trim(), 
                                           password: _passwordController.text.trim(),
-                                          role: _selectedRole,
+                                          role: 'client',
                                           fcmToken: fcmToken,
                                         ),
                                       );
@@ -447,53 +428,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildRoleSelector(bool isLoading) {
-    List<Map<String, dynamic>> roles = [
-      {"label": "Client", "value": "client", "color": const Color(0xFFFF5722)},
-      {"label": "Chauffeur", "value": "driver", "color": const Color(0xFF2E7D32)},
-      {"label": "Livreur", "value": "delivery", "color": const Color(0xFF007AFF)},
-    ];
-
-    return Row(
-      children: roles.map((role) {
-        bool isSelected = _selectedRole == role["value"];
-        return Expanded(
-          child: GestureDetector(
-            onTap: isLoading
-                ? null
-                : () => setState(() {
-                      _selectedRole = role["value"];
-                      _loginController.clear();
-                    }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? role["color"].withOpacity(0.1)
-                    : const Color(0xFFF7F7F9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected ? role["color"] : Colors.transparent,
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                role["label"],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? role["color"] : Colors.grey[600],
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

@@ -34,7 +34,7 @@ class ClientProfileScreen extends StatelessWidget {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Unauthenticated) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/role_selection', (route) => false);
+            Navigator.of(context).pushNamedAndRemoveUntil('/welcome', (route) => false);
           }
         },
         child: ListView(
