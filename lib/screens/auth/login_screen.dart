@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 25),
 
                       Text(
-                        isClient ? "Adresse e-mail" : "Numéro de téléphone",
+                        isClient ? "Email ou téléphone" : "Numéro de téléphone",
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -266,16 +266,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: _loginController,
-                        keyboardType: isClient ? TextInputType.emailAddress : TextInputType.phone,
+                        keyboardType: isClient ? TextInputType.text : TextInputType.phone,
                         enabled: !isLoading,
                         decoration: InputDecoration(
-                          hintText: isClient ? "exemple@domaine.com" : "+225 07 12 34 56 78",
+                          hintText: isClient ? "Email ou numéro de téléphone" : "+225 07 12 34 56 78",
                           hintStyle: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 14,
                           ),
                           prefixIcon: Icon(
-                            isClient ? Icons.email_outlined : Icons.phone_android_rounded,
+                            isClient ? Icons.alternate_email_rounded : Icons.phone_android_rounded,
                             color: Colors.grey[400],
                             size: 18,
                           ),
@@ -370,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     SnackBar(
                                       content: Text(
                                         isClient
-                                            ? "Veuillez entrer votre adresse e-mail"
+                                            ? "Veuillez entrer votre email ou numéro de téléphone"
                                             : "Veuillez entrer votre numéro de téléphone",
                                       ),
                                     ),
