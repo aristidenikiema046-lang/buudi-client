@@ -4,18 +4,17 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../models/ride_draft.dart';
+import '../../../services/directions_service.dart';
 import '../../../utils/formatters.dart';
 import 'destination_search_screen.dart';
 import 'ride_confirmation_screen.dart';
 
 /// Étape 1 du flux VTC : "Course Taxi".
 ///
-/// NOTE : le tracé affiché sur la carte est une ligne droite entre le départ
-/// et la destination (Polyline simple), pas un itinéraire routier réel — ça
-/// demanderait l'API Directions de Google (facturée séparément, hors
-/// périmètre Phase A). Idem pour la distance/durée : calculées à vol d'oiseau
-/// (formule haversine via Geolocator) + une vitesse moyenne urbaine estimée,
-/// pas un vrai temps de trajet routier.
+/// Le tracé, la distance et la durée viennent de l'API Google Directions
+/// (appel dans _fetchRoute). Si cet appel échoue (réseau, quota...), on
+/// retombe sur une estimation à vol d'oiseau (formule haversine) pour ne pas
+/// bloquer l'utilisateur — un message discret l'indique dans ce cas.
 class RideRequestScreen extends StatefulWidget {
   const RideRequestScreen({Key? key}) : super(key: key);
 
@@ -35,6 +34,12 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   DestinationResult? _destination;
   String _serviceType = 'ok_taxi';
   final Geocoding _geocoding = Geocoding();
+
+  List<LatLng>? _routePoints;
+  double? _apiDistanceKm;
+  int? _apiDurationMin;
+  bool _loadingRoute = false;
+  String? _routeError;
 
   final List<Map<String, String>> _quickPlaces = const [
     {'label': 'Maison', 'sub': 'Cocody Riviera', 'query': "Cocody Riviera, Abidjan, Côte d'Ivoire"},
@@ -107,6 +112,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
     if (result != null) {
       setState(() => _destination = result);
       _fitMapToRoute();
+      _fetchRoute();
     }
   }
 
@@ -117,6 +123,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
       final loc = locations.first;
       setState(() => _destination = DestinationResult(lat: loc.latitude, lng: loc.longitude, address: query));
       _fitMapToRoute();
+      _fetchRoute();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,6 +131,38 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
         );
       }
     }
+  }
+
+  Future<void> _fetchRoute() async {
+    if (_pickup == null || _destination == null) return;
+    setState(() {
+      _loadingRoute = true;
+      _routeError = null;
+    });
+    final result = await DirectionsService.getRoute(
+      originLat: _pickup!.latitude,
+      originLng: _pickup!.longitude,
+      destLat: _destination!.lat,
+      destLng: _destination!.lng,
+    );
+    if (!mounted) return;
+    setState(() {
+      _loadingRoute = false;
+      if (result['success'] == true) {
+        final route = result['result'] as DirectionsResult;
+        _routePoints = route.points;
+        _apiDistanceKm = route.distanceKm;
+        _apiDurationMin = route.durationMin;
+        _routeError = null;
+      } else {
+        // On garde l'estimation à vol d'oiseau (getters _distanceKm/_durationMin)
+        // plutôt que de bloquer l'utilisateur.
+        _routePoints = null;
+        _apiDistanceKm = null;
+        _apiDurationMin = null;
+        _routeError = "Itinéraire estimé (API indisponible)";
+      }
+    });
   }
 
   void _fitMapToRoute() {
@@ -142,6 +181,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   }
 
   double get _distanceKm {
+    if (_apiDistanceKm != null) return _apiDistanceKm!;
     if (_pickup == null || _destination == null) return 0;
     final meters = Geolocator.distanceBetween(
       _pickup!.latitude,
@@ -153,6 +193,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   }
 
   int get _durationMin {
+    if (_apiDurationMin != null) return _apiDurationMin!;
     const avgSpeedKmH = 35;
     final min = (_distanceKm / avgSpeedKmH) * 60;
     return min < 1 ? 1 : min.round();
@@ -291,11 +332,19 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
                                 ),
                             },
                             polylines: {
-                              if (_destination != null)
+                              if (_routePoints != null)
                                 Polyline(
                                   polylineId: const PolylineId('route'),
                                   color: _orange,
                                   width: 4,
+                                  points: _routePoints!,
+                                )
+                              else if (_destination != null)
+                                Polyline(
+                                  polylineId: const PolylineId('route'),
+                                  color: _orange,
+                                  width: 4,
+                                  patterns: [PatternItem.dash(12), PatternItem.gap(8)],
                                   points: [_pickup!, LatLng(_destination!.lat, _destination!.lng)],
                                 ),
                             },
@@ -308,8 +357,22 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text("Type de service", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              children: [
+                const Text("Type de service", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                if (_loadingRoute)
+                  Row(
+                    children: [
+                      const SizedBox(
+                        height: 12,
+                        width: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: _orange),
+                      ),
+                      const SizedBox(width: 6),
+                      Text("Calcul de l'itinéraire...", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    ],
+                  )
+                else if (_routeError != null)
+                  Text(_routeError!, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
               ],
             ),
           ),
