@@ -15,6 +15,7 @@ import 'transfer_screen.dart';
 import 'vtc/ride_request_screen.dart';
 import 'client_activity_screen.dart';
 import 'client_profile_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({Key? key}) : super(key: key);
@@ -626,9 +627,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         currentIndex: _currentIndex,
         onTap: (index) {
           if (index == 2) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Scanner : bientôt disponible")),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScannerScreen()));
             return;
           }
           setState(() => _currentIndex = index);

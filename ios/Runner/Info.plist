@@ -51,5 +51,7 @@
 	<string>Nous avons besoin de votre position pour vous envoyer des courses à proximité.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Nous avons besoin de votre position en arrière-plan pour assurer le suivi de vos courses.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Nous avons besoin de la caméra pour scanner les QR codes de paiement.</string>
 </dict>
 </plist>
