@@ -31,6 +31,7 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
     'ok_taxi': 'OK Taxi',
     'ok_confort': 'OK Confort',
     'ok_van': 'OK Van',
+    'delivery': 'Livraison',
   };
 
   @override
@@ -66,6 +67,14 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
       destAddress: widget.draft.destAddress,
       serviceType: widget.draft.serviceType,
       paymentMethod: widget.draft.paymentMethod,
+      distanceKm: widget.draft.distanceKm,
+      durationMin: widget.draft.durationMin,
+      price: widget.draft.price,
+      recipientName: widget.draft.recipientName,
+      recipientPhone: widget.draft.recipientPhone,
+      packageType: widget.draft.packageType,
+      packageWeightKg: widget.draft.packageWeightKg,
+      deliveryInstructions: widget.draft.deliveryInstructions,
     );
 
     if (!mounted) return;
@@ -130,6 +139,23 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
               ],
             ),
           ),
+          if (draft.isDelivery) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                children: [
+                  _buildInfoRow("Destinataire", draft.recipientName ?? '—'),
+                  _buildInfoRow("Téléphone", draft.recipientPhone ?? '—'),
+                  if (draft.packageType?.isNotEmpty == true) _buildInfoRow("Colis", draft.packageType!),
+                  if (draft.packageWeightKg != null) _buildInfoRow("Poids", "${draft.packageWeightKg} kg"),
+                  if (draft.deliveryInstructions?.isNotEmpty == true)
+                    _buildInfoRow("Instructions", draft.deliveryInstructions!),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),

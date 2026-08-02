@@ -9,12 +9,19 @@ class RideDraft {
   double? destLng;
   String destAddress;
 
-  String serviceType; // ok_taxi | ok_confort | ok_van
+  String serviceType; // ok_taxi | ok_confort | ok_van | delivery
   double distanceKm;
   int durationMin;
   double price;
 
   String paymentMethod; // wallet | mobile_money | card | cash
+
+  // Uniquement pertinents quand serviceType == 'delivery'.
+  String? recipientName;
+  String? recipientPhone;
+  String? packageType;
+  double? packageWeightKg;
+  String? deliveryInstructions;
 
   RideDraft({
     required this.pickupLat,
@@ -28,9 +35,15 @@ class RideDraft {
     this.durationMin = 0,
     this.price = 0,
     this.paymentMethod = 'wallet',
+    this.recipientName,
+    this.recipientPhone,
+    this.packageType,
+    this.packageWeightKg,
+    this.deliveryInstructions,
   });
 
   bool get hasDestination => destLat != null && destLng != null;
+  bool get isDelivery => serviceType == 'delivery';
 }
 
 class ServiceTypeOption {
@@ -45,4 +58,5 @@ const List<ServiceTypeOption> kServiceTypes = [
   ServiceTypeOption(value: 'ok_taxi', label: 'OK Taxi', perKmRate: 160),
   ServiceTypeOption(value: 'ok_confort', label: 'OK Confort', perKmRate: 280),
   ServiceTypeOption(value: 'ok_van', label: 'OK Van', perKmRate: 400),
+  ServiceTypeOption(value: 'delivery', label: 'Livraison', perKmRate: 200),
 ];

@@ -16,7 +16,9 @@ import 'ride_confirmation_screen.dart';
 /// retombe sur une estimation à vol d'oiseau (formule haversine) pour ne pas
 /// bloquer l'utilisateur — un message discret l'indique dans ce cas.
 class RideRequestScreen extends StatefulWidget {
-  const RideRequestScreen({Key? key}) : super(key: key);
+  final String initialServiceType;
+
+  const RideRequestScreen({Key? key, this.initialServiceType = 'ok_taxi'}) : super(key: key);
 
   @override
   State<RideRequestScreen> createState() => _RideRequestScreenState();
@@ -32,8 +34,16 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   String? _locationError;
 
   DestinationResult? _destination;
-  String _serviceType = 'ok_taxi';
+  late String _serviceType;
   final Geocoding _geocoding = Geocoding();
+
+  final TextEditingController _recipientNameController = TextEditingController();
+  final TextEditingController _recipientPhoneController = TextEditingController();
+  final TextEditingController _packageTypeController = TextEditingController();
+  final TextEditingController _packageWeightController = TextEditingController();
+  final TextEditingController _deliveryInstructionsController = TextEditingController();
+
+  bool get _isDelivery => _serviceType == 'delivery';
 
   List<LatLng>? _routePoints;
   double? _apiDistanceKm;
@@ -50,7 +60,18 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   @override
   void initState() {
     super.initState();
+    _serviceType = widget.initialServiceType;
     _initLocation();
+  }
+
+  @override
+  void dispose() {
+    _recipientNameController.dispose();
+    _recipientPhoneController.dispose();
+    _packageTypeController.dispose();
+    _packageWeightController.dispose();
+    _deliveryInstructionsController.dispose();
+    super.dispose();
   }
 
   Future<void> _initLocation() async {
@@ -206,6 +227,15 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
 
   void _goToConfirmation() {
     if (_pickup == null || _destination == null) return;
+
+    if (_isDelivery &&
+        (_recipientNameController.text.trim().isEmpty || _recipientPhoneController.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Renseignez au moins le nom et le téléphone du destinataire.")),
+      );
+      return;
+    }
+
     final selected = kServiceTypes.firstWhere((o) => o.value == _serviceType);
     final draft = RideDraft(
       pickupLat: _pickup!.latitude,
@@ -218,8 +248,79 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
       distanceKm: _distanceKm,
       durationMin: _durationMin,
       price: _priceFor(selected),
+      recipientName: _isDelivery ? _recipientNameController.text.trim() : null,
+      recipientPhone: _isDelivery ? _recipientPhoneController.text.trim() : null,
+      packageType: _isDelivery && _packageTypeController.text.trim().isNotEmpty
+          ? _packageTypeController.text.trim()
+          : null,
+      packageWeightKg: _isDelivery ? double.tryParse(_packageWeightController.text.trim()) : null,
+      deliveryInstructions: _isDelivery && _deliveryInstructionsController.text.trim().isNotEmpty
+          ? _deliveryInstructionsController.text.trim()
+          : null,
     );
     Navigator.push(context, MaterialPageRoute(builder: (_) => RideConfirmationScreen(draft: draft)));
+  }
+
+  Widget _buildDeliveryForm() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Informations de livraison", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _deliveryField(_recipientNameController, "Nom destinataire")),
+                const SizedBox(width: 10),
+                Expanded(child: _deliveryField(_recipientPhoneController, "Téléphone", keyboardType: TextInputType.phone)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _deliveryField(_packageTypeController, "Type de colis")),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _deliveryField(
+                    _packageWeightController,
+                    "Poids (kg)",
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _deliveryField(_deliveryInstructionsController, "Instructions (optionnel)", maxLines: 2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _deliveryField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      style: const TextStyle(fontSize: 13),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+        filled: true,
+        fillColor: const Color(0xFFF7F7F9),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+    );
   }
 
   @override
@@ -230,7 +331,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Course Taxi", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text(_isDelivery ? "Livraison" : "Course Taxi", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         actions: const [Padding(padding: EdgeInsets.only(right: 12), child: Icon(Icons.history_rounded, color: Colors.black))],
       ),
       body: Column(
@@ -401,7 +502,11 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.directions_car_filled_rounded, size: 22, color: Colors.black87),
+                        Icon(
+                          option.value == 'delivery' ? Icons.two_wheeler_rounded : Icons.directions_car_filled_rounded,
+                          size: 22,
+                          color: Colors.black87,
+                        ),
                         Text(option.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         Text(
                           _destination == null ? '--' : formatCfa(_priceFor(option)),
@@ -414,6 +519,7 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
               },
             ),
           ),
+          if (_isDelivery) _buildDeliveryForm(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: ElevatedButton(

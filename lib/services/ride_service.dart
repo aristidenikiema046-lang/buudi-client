@@ -1,12 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../models/ride_draft.dart';
 
-/// NOTE : L'endpoint POST /v1/client/rides n'existe pas encore côté Laravel
-/// (absent de routes/api.php au 2026-07-31). Cet appel est prêt à fonctionner
-/// dès qu'il sera créé côté backend ; en attendant, un 404 est traduit en
-/// message explicite plutôt que d'inventer une fausse réponse de succès.
 class RideService {
+  /// Convertit le moyen de paiement interne Flutter ('card', 'cash', ...)
+  /// vers les valeurs exactes attendues par le validator Laravel
+  /// (wallet|mobile_money|carte|especes).
+  static String _backendPaymentMethod(String method) {
+    switch (method) {
+      case 'card':
+        return 'carte';
+      case 'cash':
+        return 'especes';
+      default:
+        return method; // wallet, mobile_money : identiques des deux côtés
+    }
+  }
+
+  /// Convertit le type de service interne ('ok_taxi', ...) vers le libellé
+  /// exact attendu par le validator Laravel ("OK Taxi", "OK Confort", "OK Van").
+  static String _backendServiceType(String value) {
+    final option = kServiceTypes.firstWhere(
+      (o) => o.value == value,
+      orElse: () => kServiceTypes.first,
+    );
+    return option.label;
+  }
+
+  /// POST /v1/client/rides — Créer une demande de course.
   static Future<Map<String, dynamic>> requestRide(
     String jwtToken, {
     required double pickupLat,
@@ -17,6 +39,14 @@ class RideService {
     required String destAddress,
     required String serviceType,
     required String paymentMethod,
+    required double distanceKm,
+    required int durationMin,
+    required double price,
+    String? recipientName,
+    String? recipientPhone,
+    String? packageType,
+    double? packageWeightKg,
+    String? deliveryInstructions,
   }) async {
     try {
       final response = await http.post(
@@ -29,8 +59,16 @@ class RideService {
           'destination_lat': destLat,
           'destination_lng': destLng,
           'destination_address': destAddress,
-          'service_type': serviceType,
-          'payment_method': paymentMethod,
+          'service_type': _backendServiceType(serviceType),
+          'payment_method': _backendPaymentMethod(paymentMethod),
+          'estimated_price': price,
+          'estimated_distance_km': distanceKm,
+          'estimated_duration_min': durationMin,
+          if (recipientName != null) 'recipient_name': recipientName,
+          if (recipientPhone != null) 'recipient_phone': recipientPhone,
+          if (packageType != null) 'package_type': packageType,
+          if (packageWeightKg != null) 'package_weight_kg': packageWeightKg,
+          if (deliveryInstructions != null) 'delivery_instructions': deliveryInstructions,
         }),
       );
 
@@ -38,8 +76,7 @@ class RideService {
         return {
           'success': false,
           'code': 'ENDPOINT_MISSING',
-          'message':
-              "Endpoint manquant côté Laravel : POST /v1/client/rides n'existe pas encore dans routes/api.php. À créer côté backend avant de pouvoir commander une course.",
+          'message': "Endpoint manquant côté Laravel : POST /v1/client/rides n'existe pas.",
         };
       }
 
@@ -54,6 +91,24 @@ class RideService {
         'code': 'NETWORK_ERROR',
         'message': 'Impossible de contacter le serveur.',
       };
+    }
+  }
+
+  /// GET /v1/client/rides/{id} — Récupère l'état actuel d'une course
+  /// (status, driver_id une fois qu'un chauffeur a accepté, infos chauffeur).
+  static Future<Map<String, dynamic>> getRide(String jwtToken, String rideId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/v1/client/rides/$rideId'),
+        headers: ApiConfig.authHeaders(jwtToken),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return {'success': true, 'ride': data['data']};
+      }
+      return {'success': false, 'message': data['message'] ?? 'Impossible de charger la course.'};
+    } catch (e) {
+      return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
   }
 }

@@ -377,7 +377,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         'icon': Icons.two_wheeler_rounded,
         'bg': const Color(0xFFFFE3DB),
         'fg': const Color(0xFFFF5722),
-        'onTap': () => _openComingSoon('Livraison'),
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RideRequestScreen(initialServiceType: 'delivery')),
+            ),
       },
       {
         'label': 'Supermarché',
