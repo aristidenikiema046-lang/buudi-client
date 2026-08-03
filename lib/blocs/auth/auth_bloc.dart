@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 import '../../../models/user_model.dart';
+import '../../../services/profile_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -24,8 +25,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         (event, emit) => emit(AuthError(message: event.message)));
   }
 
+  // Restaure la session à partir du token stocké, s'il existe et est encore
+  // valide (vérifié via GET /v1/client/profile). Sans ça, un utilisateur déjà
+  // connecté retomberait toujours sur l'écran de bienvenue au relancement.
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
-    emit(Unauthenticated());
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+
+    if (token == null || token.isEmpty) {
+      emit(Unauthenticated());
+      return;
+    }
+
+    final result = await ProfileService.getProfile(token);
+    if (result['success'] == true) {
+      emit(Authenticated(user: UserModel.fromJson(result['user'])));
+    } else {
+      await prefs.remove('jwt_token');
+      emit(Unauthenticated());
+    }
   }
 
   // --- ENVOI DE L'E-MAIL DE VÉRIFICATION / OTP ---

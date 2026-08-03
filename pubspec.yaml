@@ -118,9 +118,19 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/branding/logo_buudi.png"
+  image_path: "assets/branding/app_icon_foreground_1024.png"
   min_sdk_android: 21
-  
+  remove_alpha_ios: true
+
   # Ces lignes forcent Android à ajouter un arrière-plan blanc et à centrer/réduire l'aigle au milieu pour qu'il ne bave pas sur les bords
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/branding/logo_buudi.png"
+  adaptive_icon_foreground: "assets/branding/app_icon_foreground_1024.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  # splash_logo_square_1024.png n'a pas été fourni : eagle_mark_transparent.png
+  # (aigle seul, fond transparent) utilisé à la place pour l'instant.
+  image: assets/branding/eagle_mark_transparent.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/branding/eagle_mark_transparent.png

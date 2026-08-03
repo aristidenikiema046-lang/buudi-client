@@ -2,12 +2,25 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
-/// NOTE : ni GET /v1/client/profile ni PUT/PATCH de mise à jour du profil
-/// n'existent côté Laravel (absents de routes/api.php au moment où cet écran
-/// a été créé). Cet appel est prêt à fonctionner dès que l'endpoint existera ;
-/// en attendant, un 404 est traduit en message explicite plutôt que
-/// d'inventer une fausse réussite qui ne persisterait rien réellement.
 class ProfileService {
+  /// GET /v1/client/profile — utilisé pour restaurer la session au démarrage
+  /// (voir AuthBloc._onAppStarted) et pour rafraîchir l'écran Profil.
+  static Future<Map<String, dynamic>> getProfile(String jwtToken) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/v1/client/profile'),
+        headers: ApiConfig.authHeaders(jwtToken),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return {'success': true, 'user': data['user']};
+      }
+      return {'success': false, 'message': data['message'] ?? 'Impossible de charger le profil.'};
+    } catch (e) {
+      return {'success': false, 'message': 'Impossible de contacter le serveur.'};
+    }
+  }
+
   static Future<Map<String, dynamic>> updateProfile(
     String jwtToken, {
     required String name,

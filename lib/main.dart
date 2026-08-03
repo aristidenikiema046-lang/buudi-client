@@ -20,6 +20,8 @@ import 'services/fcm_service.dart';
 
 import 'screens/auth/welcome_screen.dart';
 
+import 'screens/splash_screen.dart';
+
 import 'screens/auth/login_screen.dart';
 
 import 'screens/driver/driver_navigation_shell.dart';
@@ -150,7 +152,7 @@ class BuudiApp extends StatelessWidget {
 
         // Écran initial
 
-        home: const WelcomeScreen(),
+        home: const SplashScreen(),
 
 
 

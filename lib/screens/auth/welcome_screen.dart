@@ -24,9 +24,12 @@ class WelcomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'assets/branding/logo_buudi.png',
-                      height: 84,
+                    Center(
+                      child: Image.asset(
+                        'assets/branding/logo_with_tagline_super_app.png',
+                        width: MediaQuery.of(context).size.width * 0.72,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                     const SizedBox(height: 36),
                     const Text(
