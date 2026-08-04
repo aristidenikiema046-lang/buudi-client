@@ -83,6 +83,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/branding/
+    - assets/branding/services/
     - .env
 
   # To add assets to your application, add an assets section, like this:
@@ -128,9 +129,11 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  # splash_logo_square_1024.png n'a pas été fourni : eagle_mark_transparent.png
-  # (aigle seul, fond transparent) utilisé à la place pour l'instant.
-  image: assets/branding/eagle_mark_transparent.png
+  # eagle_mark_padded.png : même aigle que eagle_mark_transparent.png, mais
+  # avec une marge transparente généreuse autour. Sans cette marge, l'API
+  # Android 12+ Splash Screen recadre l'image dans son masque de sécurité
+  # (comme pour une icône adaptative) et coupe le haut/bas de la tête.
+  image: assets/branding/eagle_mark_padded.png
   android_12:
     color: "#FFFFFF"
-    image: assets/branding/eagle_mark_transparent.png
+    image: assets/branding/eagle_mark_padded.png

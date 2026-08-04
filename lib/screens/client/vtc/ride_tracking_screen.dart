@@ -10,6 +10,7 @@ import '../../../services/directions_service.dart';
 import '../../../services/ride_service.dart';
 import '../../../utils/formatters.dart';
 import '../../../utils/map_icons.dart';
+import '../../common/chat_screen.dart';
 
 /// Étape 3 du flux VTC : "Suivi en cours".
 ///
@@ -233,6 +234,16 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                       ],
                     ),
                   ),
+                  Container(
+                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), shape: BoxShape.circle),
+                    child: IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.black87),
+                      onPressed: _rideId.isEmpty
+                          ? null
+                          : () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(rideId: _rideId))),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
                     decoration: const BoxDecoration(color: _orange, shape: BoxShape.circle),
                     child: IconButton(icon: const Icon(Icons.call_rounded, color: Colors.white), onPressed: () {}),

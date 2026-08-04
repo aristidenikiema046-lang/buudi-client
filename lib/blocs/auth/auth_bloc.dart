@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
-import '../../../models/user_model.dart';
-import '../../../services/profile_service.dart';
+import '../../models/user_model.dart';
+import '../../services/profile_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;

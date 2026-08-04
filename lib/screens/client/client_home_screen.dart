@@ -299,7 +299,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Solde OKPAY",
+                "Solde BUUDI PAY",
                 style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 6),
@@ -368,16 +368,14 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     final services = [
       {
         'label': 'Courses Taxi',
-        'icon': Icons.local_taxi_rounded,
+        'image': 'assets/branding/services/courses_taxi.png',
         'bg': const Color(0xFFFFF3D6),
-        'fg': const Color(0xFFB8860B),
         'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RideRequestScreen())),
       },
       {
         'label': 'Livraison',
-        'icon': Icons.two_wheeler_rounded,
+        'image': 'assets/branding/services/livraison.png',
         'bg': const Color(0xFFFFE3DB),
-        'fg': const Color(0xFFFF5722),
         'onTap': () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const RideRequestScreen(initialServiceType: 'delivery')),
@@ -385,26 +383,23 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       },
       {
         'label': 'Supermarché',
-        'icon': Icons.shopping_basket_outlined,
+        'image': 'assets/branding/services/supermarche.png',
         'bg': const Color(0xFFE3F5E1),
-        'fg': const Color(0xFF2E7D32),
         'onTap': () => _openComingSoon('Supermarché'),
       },
       {
-        'label': 'Wallet',
-        'icon': Icons.account_balance_wallet_rounded,
+        'label': 'Buudi',
+        'image': 'assets/branding/services/wallet.png',
         'bg': const Color(0xFFE9E9EC),
-        'fg': Colors.black87,
         'onTap': () async {
           await Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
           _loadHomeData();
         },
       },
       {
-        'label': "Envoyer de l'argent",
-        'icon': Icons.send_rounded,
+        'label': "Transfert inter-réseaux",
+        'image': 'assets/branding/services/envoyer_argent.png',
         'bg': const Color(0xFFE3ECFB),
-        'fg': const Color(0xFF1565C0),
         'onTap': () async {
           await Navigator.push(context, MaterialPageRoute(builder: (_) => const TransferScreen()));
           _loadHomeData();
@@ -431,7 +426,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   color: service['bg'] as Color,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(service['icon'] as IconData, color: service['fg'] as Color, size: 26),
+                padding: const EdgeInsets.all(13),
+                child: Image.asset(service['image'] as String, fit: BoxFit.contain),
               ),
               const SizedBox(height: 6),
               Text(

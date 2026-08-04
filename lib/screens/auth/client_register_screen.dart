@@ -117,10 +117,22 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
     }
   }
 
+  static final DateFormat _birthDateFormat = DateFormat('dd/MM/yyyy');
+
+  // Parse un texte "JJ/MM/AAAA" saisi manuellement ; null si le format ne correspond pas.
+  DateTime? _parseBirthDate(String text) {
+    if (text.trim().isEmpty) return null;
+    try {
+      return _birthDateFormat.parseStrict(text.trim());
+    } on FormatException {
+      return null;
+    }
+  }
+
   Future<void> _selectBirthDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
+      initialDate: _parseBirthDate(_birthController.text) ?? DateTime(2000),
       firstDate: DateTime(1920),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -141,7 +153,7 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
     );
     if (picked != null) {
       setState(() {
-        _birthController.text = DateFormat('yyyy-MM-dd').format(picked);
+        _birthController.text = _birthDateFormat.format(picked);
       });
     }
   }
@@ -186,19 +198,28 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
       return;
     }
 
+    final birthText = _birthController.text.trim();
+    final birthDate = _parseBirthDate(birthText);
+    if (birthText.isNotEmpty && birthDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Date de naissance invalide, utilisez le format JJ/MM/AAAA")),
+      );
+      return;
+    }
+
     final localPhone = _phoneController.text.trim().replaceAll(RegExp(r'\s+'), '');
     final fullPhone = localPhone.isNotEmpty ? '$_countryCode$localPhone' : '';
     final smsCode = _otpControllers.map((c) => c.text.trim()).join();
 
     final userModel = UserModel(
-      uid: '', 
+      uid: '',
       name: _nameController.text.trim(),
       phone: fullPhone,
       email: _emailController.text.trim(),
       role: 'Client',
-      createdAt: DateTime.now(), 
+      createdAt: DateTime.now(),
       city: _cityController.text.trim(),
-      birthDate: _birthController.text.trim(),
+      birthDate: birthDate != null ? DateFormat('yyyy-MM-dd').format(birthDate) : '',
       gender: _gender,
     );
 
@@ -431,22 +452,24 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
             children: [
               const Text("Date de naissance", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
               const SizedBox(height: 6),
-              InkWell(
-                onTap: state is AuthLoading ? null : _selectBirthDate,
-                borderRadius: BorderRadius.circular(12),
-                child: IgnorePointer(
-                  child: TextField(
-                    controller: _birthController,
-                    decoration: InputDecoration(
-                      hintText: "1995-05-12",
-                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                      prefixIcon: Icon(Icons.calendar_month_outlined, color: Colors.grey[400], size: 18),
-                      filled: true,
-                      fillColor: const Color(0xFFF7F7F9),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
+              TextField(
+                controller: _birthController,
+                enabled: state is! AuthLoading,
+                keyboardType: TextInputType.datetime,
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9/]'))],
+                decoration: InputDecoration(
+                  hintText: "JJ/MM/AAAA",
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  prefixIcon: Icon(Icons.calendar_month_outlined, color: Colors.grey[400], size: 18),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.edit_calendar_outlined, color: Colors.grey[400], size: 18),
+                    onPressed: state is AuthLoading ? null : _selectBirthDate,
+                    tooltip: "Choisir dans le calendrier",
                   ),
+                  filled: true,
+                  fillColor: const Color(0xFFF7F7F9),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ],
@@ -482,7 +505,7 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
   }
 
   Widget _buildStep2Verification(AuthState state) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -535,7 +558,7 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
   }
 
   Widget _buildStep3Securite(AuthState state) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,7 +571,7 @@ class _ClientRegisterScreenState extends State<ClientRegisterScreen> {
           _buildTextField("Mot de passe", "••••••••", Icons.lock_outline_rounded, _passwordController, obscureText: true, enabled: state is! AuthLoading),
           const SizedBox(height: 15),
           _buildTextField("Confirmer le mot de passe", "••••••••", Icons.lock_outline_rounded, _confirmPasswordController, obscureText: true, enabled: state is! AuthLoading),
-          const Spacer(),
+          const SizedBox(height: 30),
           _buildButton("Terminer l'inscription", _submitRegistration, isLoading: state is AuthLoading),
           const SizedBox(height: 20),
         ],

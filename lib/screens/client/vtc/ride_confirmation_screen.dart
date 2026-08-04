@@ -28,9 +28,9 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
   bool _submitting = false;
 
   final Map<String, String> _serviceLabels = {
-    'ok_taxi': 'OK Taxi',
-    'ok_confort': 'OK Confort',
-    'ok_van': 'OK Van',
+    'ok_taxi': 'BUUDI Taxi',
+    'ok_confort': 'BUUDI Confort',
+    'ok_van': 'BUUDI Van',
     'delivery': 'Livraison',
   };
 

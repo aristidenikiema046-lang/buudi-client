@@ -48,15 +48,24 @@ class RideDraft {
 
 class ServiceTypeOption {
   final String value;
+  // Valeur exacte attendue par le validator Laravel pour 'service_type' (ne pas renommer sans
+  // mettre à jour le backend en parallèle) — voir RideService._backendServiceType.
   final String label;
+  // Libellé affiché à l'utilisateur (marque BUUDI), indépendant de la valeur envoyée à l'API.
+  final String displayLabel;
   final double perKmRate;
 
-  const ServiceTypeOption({required this.value, required this.label, required this.perKmRate});
+  const ServiceTypeOption({
+    required this.value,
+    required this.label,
+    required this.displayLabel,
+    required this.perKmRate,
+  });
 }
 
 const List<ServiceTypeOption> kServiceTypes = [
-  ServiceTypeOption(value: 'ok_taxi', label: 'OK Taxi', perKmRate: 160),
-  ServiceTypeOption(value: 'ok_confort', label: 'OK Confort', perKmRate: 280),
-  ServiceTypeOption(value: 'ok_van', label: 'OK Van', perKmRate: 400),
-  ServiceTypeOption(value: 'delivery', label: 'Livraison', perKmRate: 200),
+  ServiceTypeOption(value: 'ok_taxi', label: 'OK Taxi', displayLabel: 'BUUDI Taxi', perKmRate: 160),
+  ServiceTypeOption(value: 'ok_confort', label: 'OK Confort', displayLabel: 'BUUDI Confort', perKmRate: 280),
+  ServiceTypeOption(value: 'ok_van', label: 'OK Van', displayLabel: 'BUUDI Van', perKmRate: 400),
+  ServiceTypeOption(value: 'delivery', label: 'Livraison', displayLabel: 'Livraison', perKmRate: 200),
 ];

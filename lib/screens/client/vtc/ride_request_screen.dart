@@ -37,6 +37,11 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   late String _serviceType;
   final Geocoding _geocoding = Geocoding();
 
+  // Affichage uniquement (mode Livraison) : le backend ne distingue pas
+  // encore vélo/moto/cargo, serviceType reste 'delivery' dans tous les cas.
+  String _deliveryVehicle = 'moto'; // 'velo' | 'moto' | 'cargo'
+  String _cargoSubType = 'tricycle';
+
   final TextEditingController _recipientNameController = TextEditingController();
   final TextEditingController _recipientPhoneController = TextEditingController();
   final TextEditingController _packageTypeController = TextEditingController();
@@ -228,6 +233,13 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
   void _goToConfirmation() {
     if (_pickup == null || _destination == null) return;
 
+    if (_isDelivery && _deliveryVehicle == 'cargo') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cargo bientôt disponible.")),
+      );
+      return;
+    }
+
     if (_isDelivery &&
         (_recipientNameController.text.trim().isEmpty || _recipientPhoneController.text.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -259,6 +271,98 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
           : null,
     );
     Navigator.push(context, MaterialPageRoute(builder: (_) => RideConfirmationScreen(draft: draft)));
+  }
+
+  static const List<Map<String, dynamic>> _deliveryVehicles = [
+    {'value': 'velo', 'label': 'Vélo', 'icon': Icons.directions_bike_rounded},
+    {'value': 'moto', 'label': 'Moto', 'icon': Icons.two_wheeler_rounded},
+    {'value': 'cargo', 'label': 'Cargo', 'icon': Icons.local_shipping_rounded},
+  ];
+
+  Widget _buildDeliveryVehicleChips() {
+    final deliveryOption = kServiceTypes.firstWhere((o) => o.value == 'delivery');
+    return SizedBox(
+      height: 98,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _deliveryVehicles.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final vehicle = _deliveryVehicles[index];
+          final value = vehicle['value'] as String;
+          final isSelected = _deliveryVehicle == value;
+          final isCargo = value == 'cargo';
+          return GestureDetector(
+            onTap: () => setState(() => _deliveryVehicle = value),
+            child: Container(
+              width: 100,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isSelected ? _orange : Colors.transparent, width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(vehicle['icon'] as IconData, size: 22, color: Colors.black87),
+                  Text(
+                    vehicle['label'] as String,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                  ),
+                  Text(
+                    // Cargo n'a pas encore de tarification réelle côté backend :
+                    // pas de prix affiché pour ne pas induire l'utilisateur en erreur.
+                    isCargo ? '—' : (_destination == null ? '--' : formatCfa(_priceFor(deliveryOption))),
+                    style: const TextStyle(fontSize: 11, color: _orange, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  static const List<Map<String, String>> _cargoSubTypes = [
+    {'value': 'tricycle', 'label': 'Tricycle'},
+    {'value': 'camionnette', 'label': 'Camionnette'},
+    {'value': 'camion_moyen', 'label': 'Camion de taille moyenne'},
+    {'value': 'camion_grand', 'label': 'Camion de grande taille'},
+    {'value': 'camion_tres_grand', 'label': 'Camion de très grande taille'},
+  ];
+
+  Widget _buildCargoSubOptions() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: _cargoSubTypes.map((option) {
+            final value = option['value']!;
+            final isSelected = _cargoSubType == value;
+            return ListTile(
+              tileColor: isSelected ? const Color(0xFFFFF0EE) : null,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onTap: () => setState(() => _cargoSubType = value),
+              title: Text(option['label']!, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              trailing: Radio<String>(
+                value: value,
+                groupValue: _cargoSubType,
+                onChanged: (v) => setState(() => _cargoSubType = v!),
+                activeColor: _orange,
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   Widget _buildDeliveryForm() {
@@ -336,6 +440,15 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
       ),
       body: Column(
         children: [
+          // Contenu scrollable : évite un débordement (RenderFlex overflow)
+          // quand le clavier s'ouvre sur un champ du formulaire livraison,
+          // ou quand la liste Cargo est dépliée. Le bouton reste fixé en bas
+          // (hors scroll). La carte a une hauteur fixe au lieu d'Expanded
+          // pour être compatible avec le SingleChildScrollView.
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Container(
@@ -405,9 +518,10 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              height: 220,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: _loadingLocation
@@ -478,48 +592,61 @@ class _RideRequestScreenState extends State<RideRequestScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 90,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: kServiceTypes.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final option = kServiceTypes[index];
-                final isSelected = _serviceType == option.value;
-                return GestureDetector(
-                  onTap: () => setState(() => _serviceType = option.value),
-                  child: Container(
-                    width: 100,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isSelected ? _orange : Colors.transparent, width: 1.5),
+          if (_isDelivery) ...[
+            _buildDeliveryVehicleChips(),
+            if (_deliveryVehicle == 'cargo') _buildCargoSubOptions(),
+          ] else
+            SizedBox(
+              height: 98,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: kServiceTypes.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final option = kServiceTypes[index];
+                  final isSelected = _serviceType == option.value;
+                  return GestureDetector(
+                    onTap: () => setState(() => _serviceType = option.value),
+                    child: Container(
+                      width: 100,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: isSelected ? _orange : Colors.transparent, width: 1.5),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            option.value == 'delivery' ? Icons.two_wheeler_rounded : Icons.directions_car_filled_rounded,
+                            size: 22,
+                            color: Colors.black87,
+                          ),
+                          Text(
+                            option.displayLabel,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                          Text(
+                            _destination == null ? '--' : formatCfa(_priceFor(option)),
+                            style: const TextStyle(fontSize: 11, color: _orange, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(
-                          option.value == 'delivery' ? Icons.two_wheeler_rounded : Icons.directions_car_filled_rounded,
-                          size: 22,
-                          color: Colors.black87,
-                        ),
-                        Text(option.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                        Text(
-                          _destination == null ? '--' : formatCfa(_priceFor(option)),
-                          style: const TextStyle(fontSize: 11, color: _orange, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
+            ),
+          if (_isDelivery) _buildDeliveryForm(),
+                ],
+              ),
             ),
           ),
-          if (_isDelivery) _buildDeliveryForm(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: ElevatedButton(

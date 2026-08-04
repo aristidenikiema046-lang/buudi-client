@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -36,26 +34,6 @@ import 'blocs/auth/auth_event.dart';
 
 
 
-/// Contournement SSL pour le développement local (certificats auto-signés & HTTP)
-
-class MyHttpOverrides extends HttpOverrides {
-
-  @override
-
-  HttpClient createHttpClient(SecurityContext? context) {
-
-    return super.createHttpClient(context)
-
-      ..badCertificateCallback =
-
-          (X509Certificate cert, String host, int port) => true;
-
-  }
-
-}
-
-
-
 // Clé globale pour la navigation via notifications FCM
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -71,12 +49,6 @@ void main() async {
   // 1. Chargement du fichier .env avant d'initialiser l'application
 
   await dotenv.load(fileName: ".env");
-
-
-
-  // Active le contournement SSL avant tout appel réseau
-
-  HttpOverrides.global = MyHttpOverrides();
 
 
 
