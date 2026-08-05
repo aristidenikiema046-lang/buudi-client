@@ -445,11 +445,11 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           child: Column(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: service['bg'] as Color,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 padding: const EdgeInsets.all(13),
                 child: Image.asset(service['image'] as String, fit: BoxFit.contain),
