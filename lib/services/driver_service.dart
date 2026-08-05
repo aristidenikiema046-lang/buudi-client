@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../utils/api_error.dart';
+
 class DriverService {
   static const String baseUrl = "http://10.79.185.64:8000/api";
 
@@ -23,7 +25,7 @@ class DriverService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Erreur lors du chargement du profil.'
+          'message': apiErrorMessage(data, 'Erreur lors du chargement du profil.')
         };
       }
     } catch (e) {
@@ -49,7 +51,7 @@ class DriverService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Erreur lors du chargement des données.'
+          'message': apiErrorMessage(data, 'Erreur lors du chargement des données.')
         };
       }
     } catch (e) {
@@ -74,7 +76,7 @@ class DriverService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'data': data['data']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Aucune course.'};
+        return {'success': false, 'message': apiErrorMessage(data, 'Aucune course.')};
       }
     } catch (e) {
       return {'success': false, 'message': 'Erreur de connexion au serveur.'};
@@ -104,13 +106,13 @@ class DriverService {
         return {
           'success': false,
           'code': 'SUBSCRIPTION_REQUIRED',
-          'message': data['message'] ?? 'Abonnement requis.'
+          'message': apiErrorMessage(data, 'Abonnement requis.')
         };
       } else {
         return {
           'success': false,
           'code': 'ERROR',
-          'message': data['message'] ?? 'Une erreur est survenue.'
+          'message': apiErrorMessage(data, 'Une erreur est survenue.')
         };
       }
     } catch (e) {
@@ -139,7 +141,7 @@ class DriverService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Échec de l\'achat du pass.'
+          'message': apiErrorMessage(data, 'Échec de l\'achat du pass.')
         };
       }
     } catch (e) {
@@ -169,7 +171,7 @@ class DriverService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Impossible d\'accepter cette course.'
+          'message': apiErrorMessage(data, 'Impossible d\'accepter cette course.')
         };
       }
     } catch (e) {
@@ -189,7 +191,7 @@ class DriverService {
         },
       );
       final data = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': data['message']};
+      return {'success': response.statusCode == 200, 'message': apiErrorMessage(data, 'Une erreur est survenue.')};
     } catch (e) {
       return {'success': false, 'message': 'Erreur de connexion.'};
     }
@@ -207,7 +209,7 @@ class DriverService {
         },
       );
       final data = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': data['message']};
+      return {'success': response.statusCode == 200, 'message': apiErrorMessage(data, 'Une erreur est survenue.')};
     } catch (e) {
       return {'success': false, 'message': 'Erreur de connexion.'};
     }
@@ -225,7 +227,7 @@ class DriverService {
         },
       );
       final data = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': data['message']};
+      return {'success': response.statusCode == 200, 'message': apiErrorMessage(data, 'Une erreur est survenue.')};
     } catch (e) {
       return {'success': false, 'message': 'Erreur de connexion.'};
     }

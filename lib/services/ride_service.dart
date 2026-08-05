@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/ride_draft.dart';
+import '../utils/api_error.dart';
 
 class RideService {
   /// Convertit le moyen de paiement interne Flutter ('card', 'cash', ...)
@@ -84,7 +85,7 @@ class RideService {
       if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
         return {'success': true, 'ride': data['data']};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de créer la course.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de créer la course.')};
     } catch (e) {
       return {
         'success': false,
@@ -106,7 +107,7 @@ class RideService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'ride': data['data']};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de charger la course.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de charger la course.')};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }

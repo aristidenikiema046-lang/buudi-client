@@ -7,15 +7,19 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../models/user_model.dart';
 import '../../models/wallet_model.dart';
+import '../../services/notification_service.dart';
 import '../../services/wallet_service.dart';
 import '../../utils/formatters.dart';
 import '../common/coming_soon_screen.dart';
+import '../common/conversations_list_screen.dart';
+import '../common/notifications_screen.dart';
 import 'wallet_screen.dart';
 import 'transfer_screen.dart';
 import 'vtc/ride_request_screen.dart';
 import 'client_activity_screen.dart';
 import 'client_profile_screen.dart';
 import 'qr_scanner_screen.dart';
+import 'supermarket/supermarket_list_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({Key? key}) : super(key: key);
@@ -34,6 +38,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
   bool _loadingTransactions = true;
   List<WalletTransactionModel> _recentTransactions = [];
   String? _transactionsError;
+
+  int _unreadCount = 0;
 
   @override
   void initState() {
@@ -79,6 +85,19 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           _transactionsError = txResult['message'] as String?;
         }
       });
+    }
+
+    await _loadUnreadCount(token: token);
+  }
+
+  // Rafraîchit uniquement le compteur (ex: retour de NotificationsScreen),
+  // sans recharger le solde/les transactions.
+  Future<void> _loadUnreadCount({String? token}) async {
+    final jwtToken = token ?? await _getToken();
+    final result = await NotificationService.fetchUnreadCount(jwtToken);
+    if (!mounted) return;
+    if (result['success'] == true) {
+      setState(() => _unreadCount = result['count'] as int);
     }
   }
 
@@ -126,7 +145,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       _buildAccueilTab(context, user),
       const ClientActivityScreen(),
       const SizedBox.shrink(), // "Scanner" : action interceptée dans le onTap, jamais réellement affiché
-      const ComingSoonScreen(title: 'Messages'),
+      const ConversationsListScreen(),
       const ClientProfileScreen(),
     ];
 
@@ -169,23 +188,29 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.notifications_outlined, color: Colors.black, size: 26),
-                        onPressed: () {},
+                        onPressed: () async {
+                          await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                          _loadUnreadCount();
+                        },
                       ),
-                      Positioned(
-                        right: 10,
-                        top: 10,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF5722),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Text(
-                            "3",
-                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      if (_unreadCount > 0)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF5722),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              _unreadCount > 9 ? '9+' : '$_unreadCount',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(width: 8),
@@ -385,7 +410,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
         'label': 'Supermarché',
         'image': 'assets/branding/services/supermarche.png',
         'bg': const Color(0xFFE3F5E1),
-        'onTap': () => _openComingSoon('Supermarché'),
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupermarketListScreen())),
       },
       {
         'label': 'Buudi',

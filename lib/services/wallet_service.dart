@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/wallet_model.dart';
+import '../utils/api_error.dart';
 
 class WalletService {
   static Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
@@ -14,7 +15,7 @@ class WalletService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'wallet': WalletBalance.fromJson(data['data'])};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de charger le portefeuille.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de charger le portefeuille.')};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
@@ -31,7 +32,7 @@ class WalletService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'page': WalletTransactionsPage.fromJson(data['data'])};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de charger les transactions.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de charger les transactions.')};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
@@ -85,6 +86,6 @@ class WalletService {
       final errors = Map<String, dynamic>.from(data['errors']);
       return errors.values.expand((v) => v is List ? v : [v]).join('\n');
     }
-    return data['message']?.toString() ?? 'Une erreur est survenue.';
+    return apiErrorMessage(data, 'Une erreur est survenue.');
   }
 }

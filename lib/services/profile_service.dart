@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../utils/api_error.dart';
 
 class ProfileService {
   /// GET /v1/client/profile — utilisé pour restaurer la session au démarrage
@@ -15,7 +16,7 @@ class ProfileService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'user': data['user']};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de charger le profil.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de charger le profil.')};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
@@ -51,7 +52,7 @@ class ProfileService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'user': data['data'] ?? data['user']};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de mettre à jour le profil.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de mettre à jour le profil.')};
     } catch (e) {
       return {
         'success': false,

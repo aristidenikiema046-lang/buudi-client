@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/payment_request_model.dart';
+import '../utils/api_error.dart';
 
 class PaymentRequestService {
   /// GET /v1/payment-requests/{token} — public, mais on envoie quand même le
@@ -22,7 +23,7 @@ class PaymentRequestService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'request': PaymentRequestModel.fromJson(data)};
       }
-      return {'success': false, 'message': data['message'] ?? "Demande de paiement introuvable."};
+      return {'success': false, 'message': apiErrorMessage(data, "Demande de paiement introuvable.")};
     } catch (e) {
       return {'success': false, 'message': "Impossible de contacter le serveur."};
     }
@@ -40,7 +41,7 @@ class PaymentRequestService {
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'message': data['message']};
       }
-      return {'success': false, 'message': data['message'] ?? "Impossible d'effectuer le paiement."};
+      return {'success': false, 'message': apiErrorMessage(data, "Impossible d'effectuer le paiement.")};
     } catch (e) {
       return {'success': false, 'message': "Impossible de contacter le serveur."};
     }

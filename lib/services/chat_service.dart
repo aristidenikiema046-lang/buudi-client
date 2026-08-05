@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 
 import '../config/api_config.dart';
 import '../models/message_model.dart';
+import '../utils/api_error.dart';
 
 class ChatService {
   /// GET /v1/rides/{rideId}/messages — historique trié par created_at asc.
@@ -19,7 +20,7 @@ class ChatService {
         final messages = rawList.map((e) => Message.fromJson(e as Map<String, dynamic>)).toList();
         return {'success': true, 'messages': messages};
       }
-      return {'success': false, 'message': data['message'] ?? 'Impossible de charger les messages.'};
+      return {'success': false, 'message': apiErrorMessage(data, 'Impossible de charger les messages.')};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
@@ -39,7 +40,7 @@ class ChatService {
       if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
         return {'success': true};
       }
-      return {'success': false, 'message': data['message'] ?? "Impossible d'envoyer le message."};
+      return {'success': false, 'message': apiErrorMessage(data, "Impossible d'envoyer le message.")};
     } catch (e) {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
