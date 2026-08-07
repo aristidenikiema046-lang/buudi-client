@@ -11,6 +11,7 @@ import '../../../services/ride_service.dart';
 import '../../../utils/formatters.dart';
 import '../../../utils/map_icons.dart';
 import '../../common/chat_screen.dart';
+import 'rating_screen.dart';
 
 /// Étape 3 du flux VTC : "Suivi en cours".
 ///
@@ -102,6 +103,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
 
     final newRide = result['ride'] as Map<String, dynamic>;
     final previousDriverId = _driverId;
+    final previousStatus = _ride?['status']?.toString();
 
     setState(() => _ride = newRide);
 
@@ -113,6 +115,21 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     final status = _ride?['status']?.toString();
     if (status == 'completed' || status == 'cancelled') {
       _ridePollTimer?.cancel();
+    }
+
+    // Transition vers 'completed' détectée : on propose la notation.
+    // pushReplacement pour que "retour" ne ramène pas sur cet écran figé.
+    if (status == 'completed' && previousStatus != 'completed' && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RatingScreen(
+            rideId: _rideId,
+            driverLabel: _driverWord,
+            driverName: _ride?['driver']?['name']?.toString(),
+          ),
+        ),
+      );
     }
   }
 

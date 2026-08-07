@@ -112,4 +112,32 @@ class RideService {
       return {'success': false, 'message': 'Impossible de contacter le serveur.'};
     }
   }
+
+  /// POST /v1/client/rides/{rideId}/review — note le chauffeur/livreur
+  /// (rating 1-5, commentaire optionnel). 400 si la course n'est pas
+  /// completed ou si déjà notée.
+  static Future<Map<String, dynamic>> reviewRide(
+    String jwtToken,
+    String rideId, {
+    required int rating,
+    String? comment,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/v1/client/rides/$rideId/review'),
+        headers: ApiConfig.authHeaders(jwtToken),
+        body: jsonEncode({
+          'rating': rating,
+          if (comment != null && comment.isNotEmpty) 'comment': comment,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
+        return {'success': true, 'review': data['data']};
+      }
+      return {'success': false, 'message': apiErrorMessage(data, "Impossible d'envoyer votre avis.")};
+    } catch (e) {
+      return {'success': false, 'message': 'Impossible de contacter le serveur.'};
+    }
+  }
 }
